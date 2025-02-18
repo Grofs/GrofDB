@@ -16,6 +16,7 @@ fn main(){
     let alog = ahead.new().write(&mut sdb, 10, 0xa);
 
     let map: HashMap<u64, u8> = bincode::deserialize(&alog).unwrap();
-    let resv = map.iter().take(1);
-    print!("{:?}", resv);
+    for (_, v) in map.iter().enumerate(){
+        print!("{:?} {:?}", v.0, v.1);
+    }
 }
