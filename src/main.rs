@@ -19,10 +19,10 @@ fn remove(db:&mut DB, k:u64) -> Result<bool, Box<dyn Error>>{
     Ok(removed)
 }
 
-fn update(db: &mut DB, k:u64, v:u64){
+fn update(db: &mut DB, k:u64, v:u8){
     let mut db = db.lock().unwrap();
     if !db.contains_key(&k){print!("invalid key");}
-    *db.get_mut(&k).unwrap() += v as u8
+    *db.get_mut(&k).unwrap() += v
 }
 
 fn core_update(db: &mut DB, k: u64, v: u8){
@@ -30,10 +30,18 @@ fn core_update(db: &mut DB, k: u64, v: u8){
     if !db.contains_key(&k){print!("{}", "invalid key");}
     let op_elem = db.get_mut(&k);
     let elem = op_elem.unwrap();
-    (*elem) = 0xa;
+    (*elem) = v;
 }
 
-fn find(){}
+fn find(db: &DB, k:u64) -> Result<u8, Box<dyn Error>>{
+    let db = db.lock().unwrap();
+    if !db.contains_key(&k) || db.is_empty(){return Err("key does not exist".into());}
+    if let Some(&v) = db.get(&k){
+        Ok(v)
+    } else{
+        Err("key does not exist".into())
+    }
+}
 
 fn wal(){}
 
@@ -41,4 +49,8 @@ fn main(){
     let mut sdb = Mutex::new(HashMap::<u64, u8>::new());
     let _ = save(&mut sdb, 10, 0xa);
     let _ = remove(&mut sdb, 10);
+    let _ = update(&mut sdb, 10, 0xb);
+    let _ = core_update(&mut sdb, 10, 0xb);
+    let _ = find(&mut sdb, 10);
+    let _= wal();
 }
