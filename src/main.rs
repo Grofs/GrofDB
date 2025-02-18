@@ -25,6 +25,14 @@ fn update(db: &mut DB, k:u64, v:u64){
     *db.get_mut(&k).unwrap() += v as u8
 }
 
+fn core_update(db: &mut DB, k: u64, v: u8){
+    let mut db = db.lock().unwrap();
+    if !db.contains_key(&k){print!("{}", "invalid key");}
+    let op_elem = db.get_mut(&k);
+    let elem = op_elem.unwrap();
+    (*elem) = 0xa;
+}
+
 fn find(){}
 
 fn wal(){}
