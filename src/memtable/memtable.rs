@@ -1,5 +1,5 @@
 
-use std::{collections::HashMap, error::Error, fs::{self, metadata, File}, hash::Hash, io::Write, sync::Mutex};
+use std::{collections::HashMap, error::Error, fs::{metadata, File}, io::Write, sync::Mutex};
 
 pub type DB = Mutex<HashMap<u64, u8>>;
 
@@ -12,9 +12,9 @@ pub fn dump(db: &mut DB, sfile: &str, data: Vec<u8>) -> Result<Option<bool>, Box
                 let filesize = metadata.len();
                 if filesize > threshold{
                     let filename = format!("sstable-{}",k);
-                    let mut sstable = File::create(&filename).unwrap();
-                    let deserialised:HashMap<u64, u8> = bincode::deserialize(&data).unwrap();
-                    let serialised = bincode::serialize(&deserialised).unwrap();
+                    let mut sstable = File::create(&filename)?;
+                    let deserialised:HashMap<u64, u8> = bincode::deserialize(&data)?;
+                    let serialised = bincode::serialize(&deserialised)?;
                     sstable.write_all(&serialised).unwrap();
                 }
             },
