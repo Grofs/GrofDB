@@ -1,7 +1,28 @@
 
-use std::{collections::HashMap, error::Error, sync::Mutex};
+use std::{collections::HashMap, error::Error, fs::{self, metadata, File}, hash::Hash, io::Write, sync::Mutex};
 
 pub type DB = Mutex<HashMap<u64, u8>>;
+
+pub fn dump(db: &mut DB, sfile: &str, data: Vec<u8>) -> Result<Option<bool>, Box<dyn Error>>{
+    let threshold = 1024 * 1024 as u64;
+    let map = db.lock().unwrap();
+    for (k,_) in map.iter(){
+        match metadata(sfile){
+            Ok(metadata)=>{
+                let filesize = metadata.len();
+                if filesize > threshold{
+                    let filename = format!("sstable-{}",k);
+                    let mut sstable = File::create(&filename).unwrap();
+                    let deserialised:HashMap<u64, u8> = bincode::deserialize(&data).unwrap();
+                    let serialised = bincode::serialize(&deserialised).unwrap();
+                    sstable.write_all(&serialised).unwrap();
+                }
+            },
+            Err(e) =>{eprintln!("error reading metadata : {}", e)}
+        }
+    }
+    Ok(Some(true))
+}
 
 pub fn save(db:&mut DB, k:u64, v:u8) -> Result<bool, Box<dyn Error>>{
     let mut db = db.lock().unwrap();
