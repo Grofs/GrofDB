@@ -2,13 +2,13 @@ use std::{collections::HashSet, hash::Hash};
 
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
-pub trait simpleIteratorExt: Iterator {
-    fn simple_unique(self) -> simpleUniqueIterator<Self>
+pub trait simple_IteratorExt: Iterator {
+    fn simple_unique(self) -> simple_Unique_Iterator<Self>
     where
         Self: Sized,
         Self::Item: Eq + Hash + Clone,
     {
-        simpleUniqueIterator{
+        simple_Unique_Iterator{
             originalIterator:self,
             seenitems: HashSet::new()
         }
@@ -17,7 +17,7 @@ pub trait simpleIteratorExt: Iterator {
 
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
-pub struct simpleUniqueIterator<I>
+pub struct simple_Unique_Iterator<I>
 where
     I: Iterator,
     I::Item: Eq + Hash + Clone,
@@ -26,7 +26,7 @@ where
     seenitems: HashSet<I::Item>,
 }
 
-impl <I> Iterator for simpleUniqueIterator<I>
+impl <I> Iterator for simple_Unique_Iterator<I>
 where 
     I: Iterator,
     I::Item: Eq + Hash + Clone,
@@ -37,7 +37,7 @@ where
     }
 }
 
-impl <I:Iterator> simpleIteratorExt for I {}
+impl <I:Iterator> simple_IteratorExt for I {}
 
 pub fn select_unique() -> Vec<u64>{
     let nos = vec![];
