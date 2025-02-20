@@ -1,9 +1,14 @@
 
-use std::{collections::HashMap, error::Error, fs::{metadata, File}, io::Write, sync::Mutex};
+use std::{collections::HashMap, error::Error, fs::{metadata, File}, hash::Hash, io::Write, sync::Mutex};
+use serde::{Deserialize, Serialize};
 
 pub type DB = Mutex<HashMap<u64, u8>>;
 
-pub fn dump(db: &mut DB, sfile: &str, data: Vec<u8>) -> Result<Option<bool>, Box<dyn Error>>{
+pub fn dump<'a, T, U>(db: &mut DB, sfile: &str, data: &'a Vec<u8>) -> Result<Option<bool>, Box<dyn Error>>
+where 
+    T: Eq + Ord + Serialize + serde::de::Deserialize<'a> + Hash, 
+    U:Eq + Ord + Serialize + serde::de::Deserialize<'a>,
+{
     let threshold = 1024 * 1024 as u64;
     let map = db.lock().unwrap();
     for (k,_) in map.iter(){
@@ -13,7 +18,7 @@ pub fn dump(db: &mut DB, sfile: &str, data: Vec<u8>) -> Result<Option<bool>, Box
                 if filesize > threshold{
                     let filename = format!("sstable-{}",k);
                     let mut sstable = File::create(&filename)?;
-                    let deserialised:HashMap<u64, u8> = bincode::deserialize(&data)?;
+                    let deserialised:HashMap<T, U> = bincode::deserialize(data)?;
                     let serialised = bincode::serialize(&deserialised)?;
                     sstable.write_all(&serialised).unwrap();
                 }
