@@ -35,7 +35,7 @@ where
     T: Eq + Ord,
     U: Eq + Ord,
 {
-    pub fn new(val:Vec<U>){
+    pub fn new(val:&Vec<u8>){
         let stable_name = "sstable_";
         let mut sdb = Mutex::new(HashMap::<T, U>::new());
         let mtable_dump = memtable::dump(&mut sdb, &stable_name, val);

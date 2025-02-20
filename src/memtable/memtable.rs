@@ -1,13 +1,20 @@
 
-use std::{collections::HashMap, error::Error, fs::{metadata, File}, hash::Hash, io::Write, sync::Mutex};
+use std::{collections::{BTreeMap, HashMap}, error::Error, fs::{metadata, File}, hash::Hash, io::Write, sync::Mutex};
 use serde::{Deserialize, Serialize};
+use derive_more::derive;
 
-pub type DB = Mutex<HashMap<u64, u8>>;
+#[allow(non_snake_case)]
+#[derive(Eq, PartialEq, PartialOrd, Ord, Hash, Debug, Clone, Copy)]
+pub struct DB<'a, T, U>{
+    DBKey: T,
+    DBval: U
+}
 
-pub fn dump<'a, T, U>(db: &mut DB, sfile: &str, data: &'a Vec<u8>) -> Result<Option<bool>, Box<dyn Error>>
+
+pub fn dump<'a, T, U>(db: &mut Mutex<HashMap<DB<'a, T, U>,DB<'a, T, U>>>, sfile: &'a str, data: &'a Vec<u8>) -> Result<Option<bool>, Box<dyn Error>>
 where 
-    T: Eq + Ord + Serialize + serde::de::Deserialize<'a> + Hash, 
-    U:Eq + Ord + Serialize + serde::de::Deserialize<'a>,
+    T: Eq + Ord + Serialize + serde::de::Deserialize<'a> + Hash + Display, 
+    U:Eq + Ord + Serialize + serde::de::Deserialize<'a> + Display,
 {
     let threshold = 1024 * 1024 as u64;
     let map = db.lock().unwrap();
@@ -29,28 +36,35 @@ where
     Ok(Some(true))
 }
 
-pub fn save(db:&mut DB, k:u64, v:u8) -> Result<bool, Box<dyn Error>>{
-    let mut db = db.lock().unwrap();
-    let savenew = db.insert(k, v);
-    let saved = savenew.is_some();
-    Ok(saved)
-}
+ 
 
-pub fn remove(db:&mut DB, k:u64) -> Result<bool, Box<dyn Error>>{
+pub fn remove<'a, T, U>(db:&mut Mutex<HashMap<DB<'a, T, U>,DB<'a, T, U>>>, k:DB<'a, T, U>) -> Result<bool, Box<dyn Error>>
+where 
+    T: Eq + Hash + Ord + Serialize + serde::de::Deserialize<'a>, 
+    U:Eq + Hash+  Ord + Serialize + serde::de::Deserialize<'a>,
+{
     let mut db = db.lock().unwrap();
-    if !db.contains_key(&k){println!("invalid key")}
+    if !db.contains_key(&k){return Ok(false)}
     let remove = db.remove(&k);
-    let removed = remove.is_none();
+    let removed = remove.is_some();
     Ok(removed)
 }
 
-pub fn update(db: &mut DB, k:u64, v:u8){
+pub fn update<'a,T, U>(db: &mut Mutex<HashMap<DB<'a, T, U>,DB<'a, T, U>>>, k:DB<'a, T, U>, v:DB<'a, T,U>)
+where 
+    T: Eq + Hash + Ord + Serialize + serde::de::Deserialize<'a>, 
+    U:Eq + Hash+  Ord + Serialize + serde::de::Deserialize<'a>,
+{
     let mut db = db.lock().unwrap();
     if !db.contains_key(&k){print!("invalid key");}
-    *db.get_mut(&k).unwrap() += v
+    let _ = db.get_mut(&k).unwrap();
 }
 
-pub fn core_update(db: &mut DB, k: u64, v: u8){
+pub fn core_update<'a,T, U>(db: &mut Mutex<HashMap<DB<'a, T, U>,DB<'a, T, U>>>, k:DB<'a, T, U>, v:DB<'a, T,U>)
+where 
+    T: Eq + Hash + Ord + Serialize + serde::de::Deserialize<'a>, 
+    U:Eq + Hash+  Ord + Serialize + serde::de::Deserialize<'a>,
+{
     let mut db = db.lock().unwrap();
     if !db.contains_key(&k){print!("{}", "invalid key");}
     let op_elem = db.get_mut(&k);
@@ -58,12 +72,15 @@ pub fn core_update(db: &mut DB, k: u64, v: u8){
     (*elem) = v;
 }
 
-pub fn find(db: &DB, k:u64) -> Result<u8, Box<dyn Error>>{
+pub fn find<'a, T, U>(db: &mut Mutex<HashMap<DB<'a, T, U>,DB<'a, T, U>>>, k:DB<'a, T, U>) -> Result<U, Box<dyn Error>>
+where 
+    T: Eq + Hash + Ord + Serialize + serde::de::Deserialize<'a>, 
+    U:Eq + Hash+  Ord + Serialize + serde::de::Deserialize<'a> + Copy,
+{
     let db = db.lock().unwrap();
     if !db.contains_key(&k) || db.is_empty(){return Err("key does not exist".into());}
-    if let Some(&v) = db.get(&k){
-        Ok(v)
-    } else{
+    let someval = db.get(&k);
+    if someval.is_some(){Ok(someval.unwrap().DBval)}else{
         Err("key does not exist".into())
     }
 }
