@@ -20,4 +20,6 @@ fn main(){
     for (_, (k, v)) in map.iter().enumerate(){
         println!("{:?} {:?}", k, v);
     }
+
+    let _ = extension::extension::select_unique();
 }
