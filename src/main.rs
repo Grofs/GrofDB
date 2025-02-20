@@ -1,5 +1,6 @@
 mod wal;
 mod memtable;
+mod sstable;
 mod extension;
 
 use std::{collections::HashMap, fs::File,  sync::Mutex};
