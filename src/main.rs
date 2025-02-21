@@ -2,6 +2,7 @@ mod wal;
 mod memtable;
 mod sstable;
 mod extension;
+mod bloomfilter;
 
 use std::{collections::HashMap, fs::File,  sync::Mutex};
 
