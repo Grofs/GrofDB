@@ -3,6 +3,7 @@ mod memtable;
 mod sstable;
 mod extension;
 mod bloomfilter;
+mod sparseindex;
 
 use std::{collections::HashMap, fs::File,  sync::Mutex};
 
