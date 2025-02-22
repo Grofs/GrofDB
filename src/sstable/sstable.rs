@@ -42,6 +42,7 @@ where
         let stable_name = "sstable_";
         let mut sdb = Mutex::new(HashMap::<T, U>::new());
         let mtable_dump = memtable::dump(&mut sdb, &stable_name, val)?.is_some();
+        /* perform bloom filtering algorithm here to store data in a bit array for sstables */
         Ok(mtable_dump)
     }
 
@@ -51,6 +52,7 @@ where
         let mut string_buffer = Vec::new();
         access_file.read_to_end(&mut string_buffer)?;
         let deserialise:BTreeMap<T, U> = bincode::deserialize(&string_buffer)?;
+        /* using the deserialised data perform sparse indexing for efficient reads */
         Ok(deserialise)
     }
 }
