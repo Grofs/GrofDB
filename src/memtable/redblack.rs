@@ -71,4 +71,53 @@ impl<T: Ord> RedBlackTree<T> {
         }
         node
     }
+
+    pub fn fviolations(&mut self, node: &mut Box<Node<T>>) {
+        let mut main_left = node.left.take();
+        let mut main_right = node.right.take();
+        let mut main_left_color = main_left.take().unwrap().color;
+        let mut main_right_color = node.right.take().unwrap().color;
+        if main_left_color == Color::Red && main_right_color == Color::Red{
+            node.color = Color::Red;
+            main_left_color = Color::Black;
+            main_right_color = Color::Black;
+        } else {
+            if let Some(ref mut left_left) = main_left.take().unwrap().left{
+                if left_left.color == Color::Black {
+                    *node = Color::Black;
+                    main_left.take().unwrap().color = Color::Black;
+                    main_right.take().unwrap().color = Color::Red;
+                }
+            }
+        }
+    }
+
+    // fix some violations that might occur in the course of
+    // creating the tree such as consecutive red uncles and 
+    // children nodes being all red
+    pub fn fix_violations<T>(&mut self, node:&mut Box<Node<T>>){
+        if let Some(ref mut left) = node.left {
+            if left.color == Color::Red{
+                // apply recoloring or rotations as needed
+                // if left and right is red, then recolor them
+                // to black and make the parent to be black
+                if let Some(ref mut right) = node.right{
+                    // uncle is red here in this case
+                    if right.color == Color::Red {
+                        node.color = Color::Red;
+                        left.color = Color::Black;
+                        right.color = Color::Black;
+                    } else {
+                        // uncle is black in this case
+                        // incomplete implementation
+                        if let Some(ref mut left_left) = left.left {
+                            if left_left.color == Color::Black{
+                                left.color = Color::Red;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
