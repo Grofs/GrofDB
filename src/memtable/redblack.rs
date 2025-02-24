@@ -72,6 +72,26 @@ impl<T: Ord> RedBlackTree<T> {
         node
     }
 
+    pub fn fviolations(&mut self, node: &mut Box<Node<T>>) {
+        let mut main_left = node.left.take();
+        let mut main_right = node.right.take();
+        let mut main_left_color = main_left.take().unwrap().color;
+        let mut main_right_color = node.right.take().unwrap().color;
+        if main_left_color == Color::Red && main_right_color == Color::Red{
+            node.color = Color::Red;
+            main_left_color = Color::Black;
+            main_right_color = Color::Black;
+        } else {
+            if let Some(ref mut left_left) = main_left.take().unwrap().left{
+                if left_left.color == Color::Black {
+                    *node = Color::Black;
+                    main_left.take().unwrap().color = Color::Black;
+                    main_right.take().unwrap().color = Color::Red;
+                }
+            }
+        }
+    }
+
     // fix some violations that might occur in the course of
     // creating the tree such as consecutive red uncles and 
     // children nodes being all red
