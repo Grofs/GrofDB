@@ -1,33 +1,37 @@
-
 enum Color {
     Red,
-    Black
+    Black,
 }
 
-struct Node<T:Ord>{
-    color:Color,
-    value:T,
-    left:Option<Box<Node<T>>>,
-    right:Option<Box<Node<T>>>
+struct Node<T: Ord> {
+    color: Color,
+    value: T,
+    left: Option<Box<Node<T>>>,
+    right: Option<Box<Node<T>>>,
 }
 
-struct RedBlackTree<T:Ord>{
-    root: Option<Box<Node<T>>>
+struct RedBlackTree<T: Ord> {
+    root: Option<Box<Node<T>>>,
 }
 
-impl <T:Ord> RedBlackTree<T> {
+impl<T: Ord> RedBlackTree<T> {
     pub fn new() -> Self {
-        RedBlackTree {root: None}
+        RedBlackTree { root: None }
     }
 
-    pub fn insert(&mut self, value:T) {
+    // call the recursive insert box function to perform
+    // a generic self balancing insertion to the RBTree
+    pub fn insert(&mut self, value: T) {
         self.root = Self::insert_box(self.root, value);
         if let Some(ref mut n) = self.root {
             n.color = Color::Black;
         }
     }
 
-    pub fn insert_box(node: Option<Box<Node<T>>>, value:T){
+    // takes in a node option and a value and scans for the
+    // value and inserts it to specific locations in the box
+    // depending on the min.max value of the value to the node
+    pub fn insert_box(node: Option<Box<Node<T>>>, value: T) {
         match node {
             Some(mut n) => {
                 if value < n.value {
@@ -36,15 +40,35 @@ impl <T:Ord> RedBlackTree<T> {
                     n.right = Self::insert_box(n.right.take(), value);
                 }
                 Some(n)
-            },
-            None => {
-                Some(Box::new(Node{
-                    color:Color::Red,
-                    value:value,
-                    left:None,
-                    right:None
-                }))
             }
+            None => Some(Box::new(Node {
+                color: Color::Red,
+                value: value,
+                left: None,
+                right: None,
+            })),
         }
+    }
+
+    // if the tree leans towards the right mostly then perform
+    // a left rotation to actually self balance the tree aptly
+    pub fn rotate_left(mut node: Box<Node<T>>) -> Box<Node<T>>{
+        if let Some(mut right_child) = node.right.take(){
+            node.right = right_child.left.take();
+            right_child.left = Some(node);
+            return right_child;
+        }
+        node
+    }
+
+    // perform a right rotation of the tree to ensure that 
+    // the tree self balances itself based on values and leaning
+    pub fn rotate_right(mut node: Box<Node<T>>) -> Box<Node<T>> {
+        if let Some(mut left_child) = node.left.take(){
+            node.left = left_child.right.take();
+            left_child.right = Some(node);
+            return left_child;
+        }
+        node
     }
 }
