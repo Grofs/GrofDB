@@ -1,11 +1,9 @@
 use std::{
-    collections::HashMap,
-    fs::{self, File, OpenOptions},
-    io::{Read, Write},
-    sync::Mutex,
+    collections::HashMap, fs::{self, File, OpenOptions}, io::{Read, Write}, path::Path, sync::Mutex
 };
 
 use bincode;
+use bitvec::vec;
 
 use crate::memtable::memtable;
 
@@ -36,6 +34,8 @@ impl WAL {
     pub fn write(&self, db: &mut Mutex<HashMap<u64, u8>>, k: u64, v: u8) -> Vec<u8> {
         let mut wal_map = HashMap::<u64, u8>::new();
         let wal_file = self.new();
+        let file_exists = Path::new(wal_file.file_name);
+        if !file_exists.exists(){return vec![];}
         let mut wal_file = File::create(wal_file.file_name).unwrap();
 
         wal_map.insert(k, v);
