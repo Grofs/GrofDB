@@ -1,6 +1,7 @@
 use std::hash::{Hash, Hasher};
 use fnv::FnvHasher;
 use bitvec::prelude::*;
+use std::collections::hash_map::DefaultHasher;
 
 // these values are customisable to suit bloom
 // filter sets algorithms and usage
@@ -30,6 +31,13 @@ impl bloom_Filter_Bitvec {
         items.hash(&mut hasher);
         seed.hash(&mut hasher);
         (hasher.finish() as usize) % BIT_ARRAY_SIZE
+    }
+
+    pub fn dhash<T:Hash>(&self, item_to_hash:T, seed:u64) -> usize {
+        let default_hasher = DefaultHasher::new();
+        item_to_hash.hash(&mut default_hasher);
+        seed.hash(&mut default_hasher);
+        (default_hasher.finish() as usize) % BIT_ARRAY_SIZE
     }
 
     // add a new item to the bit vec to enable us map
