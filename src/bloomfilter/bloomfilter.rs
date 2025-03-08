@@ -6,7 +6,7 @@ use std::collections::hash_map::DefaultHasher;
 // a bloom filter uses multiple hash functions to
 // map a key to a bit array
 const BIT_ARRAY_SIZE: usize = 1000;
-const HASH_FUNCTIONS: usize = 3;
+const HASH_FUNCTIONS: usize = 5;
 
 #[allow(non_camel_case_types)]
 pub struct bloom_Filter{
